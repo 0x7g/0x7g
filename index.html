@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>空白的</title>
+    <style>
+        /* Add some style for warning messages */
+        .warning {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>发送文件和消息</h1>
+    
+    <form id="uploadForm" enctype="multipart/form-data">
+        <textarea id="messageInput" name="message" rows="4" cols="50" placeholder="在此输入消息..."></textarea><br><br>
+
+        <input type="file" id="fileInput" name="file" required /><br><br>
+
+        <label for="pinInput">输入PIN码：</label><br>
+        <input type="password" id="pinInput" name="pin" required /><br><br>
+
+        <div id="warningMessage" class="warning" style="display: none;">请等待20秒后再发送新文件。</div>
+    </form>
+
+    <script>
+        const webhookURL = "https://discord.com/api/webhooks/1325381624887775244/WAEBV4bMAQuI1IsLNxJsqI7O1jFABJ1tRaCu2DF0Baq1GkCMwjCc5LYasxlz4taSVHS5";
+        const correctPin = "fly me to the moon";
+        let isCooldown = false;
+
+        document.getElementById('pinInput').addEventListener('keypress', async function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+
+                if (isCooldown) {
+                    document.getElementById('warningMessage').style.display = 'block'; // Show the warning
+                    return;
+                } else {
+                    document.getElementById('warningMessage').style.display = 'none'; // Hide the warning
+                }
+
+                const pinInput = document.getElementById('pinInput').value;
+                const fileInput = document.getElementById('fileInput');
+                const message = document.getElementById('messageInput').value;
+
+                if (pinInput !== correctPin) {
+                    alert("无效的PIN码，请重新尝试。");
+                    return;
+                }
+
+                if (!fileInput.files.length) {
+                    alert("请选择一个文件。");
+                    return;
+                }
+
+                const file = fileInput.files[0];
+                const formData = new FormData();
+
+                formData.append("payload_json", JSON.stringify({
+                    content: message || "`User did not provide any messages.`"
+                }));
+
+                formData.append("file", file);
+
+                try {
+                    const response = await fetch(webhookURL, {
+                        method: "POST",
+                        body: formData,
+                    });
+
+                    if (response.ok) {
+                        alert("文件已发送！ :)");
+
+                        // Start cooldown period after sending the file
+                        isCooldown = true;
+                        setTimeout(() => {
+                            isCooldown = false; // Reset cooldown
+                        }, 20000); // 20 seconds cooldown
+                    } else {
+                        alert("发送失败！ :(");
+                        console.error("Error response:", await response.text());
+                    }
+                } catch (error) {
+                    console.error("Error:", error);
+                    alert("出现错误！ :((");
+                }
+            }
+        });
+    </script>
+</body>
+</html>
