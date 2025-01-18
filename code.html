@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>asd</title>
+    <style>
+        /* Styling the code block container */
+        .code-container {
+            position: relative;
+            display: inline-block;
+            width: 60%;  /* Adjust the width to make it smaller */
+            max-width: 600px; /* Optional: Set a max width for larger screens */
+        }
+
+        /* Styling the code block */
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 14px; /* Smaller font size */
+            margin: 0;
+            max-height: 300px; /* Limit the height of the box */
+            overflow-y: auto; /* Scroll vertically if content exceeds height */
+        }
+
+        /* Styling the copy button */
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<h2>click-tp</h2>
+<div class="code-container">
+    <button class="copy-btn" onclick="copyToClipboard()">Copy</button>
+    <pre><code id="code-snippet">
+-- Get the player's mouse and character
+local player = game.Players.LocalPlayer
+local mouse = player:GetMouse()
+
+-- Function to simulate a lag switch
+local function simulateLag(duration)
+    -- Get the player's network connection
+    local network = game:GetService("NetworkClient")
+    local connection = network.Connection
+    if connection then
+        -- Temporarily throttle the network
+        connection:SendThrottle(Enum.ThrottlePriority.High)
+        print("Lag switch activated!")
+
+        -- Disable the throttle after the specified duration
+        task.delay(duration, function()
+            connection:SendThrottle(Enum.ThrottlePriority.Default)
+            print("Lag switch deactivated!")
+        end)
+    else
+        print("Network connection not found!")
+    end
+end
+
+-- Function to teleport the player
+local function teleportPlayer()
+    -- Ensure the mouse is pointing at a valid position
+    if mouse.Target then
+        local targetPosition = mouse.Hit.p -- The exact 3D position where the player clicked
+        local character = player.Character
+
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            -- Teleport the player
+            character.HumanoidRootPart.CFrame = CFrame.new(targetPosition + Vector3.new(0, 3, 0))
+            -- Offset by 3 studs upward to avoid clipping into the ground
+            print("Player teleported!")
+
+            -- Simulate lag for 2 seconds after teleportation
+            simulateLag(2)
+        else
+            print("Character or HumanoidRootPart not found!")
+        end
+    else
+        print("No valid target clicked!")
+    end
+end
+
+-- Connect the teleport function to mouse click
+mouse.Button1Down:Connect(teleportPlayer)
+    </code></pre>
+</div>
+
+<script>
+    function copyToClipboard() {
+        // Get the text from the code block
+        const codeText = document.getElementById('code-snippet').innerText;
+
+        // Create a temporary textarea to copy the text
+        const textarea = document.createElement('textarea');
+        textarea.value = codeText;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+
+        // Change button text to indicate success
+        const button = document.querySelector('.copy-btn');
+        button.textContent = 'Copied!';
+        setTimeout(() => {
+            button.textContent = 'Copy';
+        }, 1500);
+    }
+</script>
+
+</body>
+</html>
